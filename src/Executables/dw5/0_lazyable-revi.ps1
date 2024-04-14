@@ -17,3 +17,4 @@ Set-ItemProperty -Path "HKLM:\System\CurrentControlSet\Control\Terminal Server" 
 # Allow connections through Windows Firewall
 Enable-NetFirewallRule -DisplayGroup "Remote Desktop"
 
+powercfg /hibernate off
