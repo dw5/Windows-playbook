@@ -10,3 +10,10 @@ New-ItemProperty -Path $registryPath -Name $valueName -Value $valueData -Propert
 
 # Set the registry value to show file extensions
 Set-ItemProperty -Path "HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced" -Name "HideFileExt" -Value 0
+
+
+# Enable Remote Desktop
+Set-ItemProperty -Path "HKLM:\System\CurrentControlSet\Control\Terminal Server" -Name "fDenyTSConnections" -Value 0
+# Allow connections through Windows Firewall
+Enable-NetFirewallRule -DisplayGroup "Remote Desktop"
+
