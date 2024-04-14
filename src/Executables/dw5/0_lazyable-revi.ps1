@@ -7,3 +7,6 @@ $valueData = "ReviOS"
 
 # Set the registry value
 New-ItemProperty -Path $registryPath -Name $valueName -Value $valueData -PropertyType $valueType -Force
+
+# Set the registry value to show file extensions
+Set-ItemProperty -Path "HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced" -Name "HideFileExt" -Value 0
