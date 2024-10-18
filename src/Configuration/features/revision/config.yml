@@ -4,6 +4,28 @@ description: Applies some Revision configurations
 privilege: TrustedInstaller
 actions:
 
+  # Disable Memory Compression
+  - !powerShell: 
+    command: 'Disable-MMAgent -mc'
+
+  # Disable Superfetch for SSDs
+  # Might not work on VMs
+  - !powerShell:
+    command: |
+      $mediaType = (Get-PhysicalDisk -SerialNumber (Get-Disk -Number (Get-Partition -DriveLetter $env:SystemDrive.Substring(0, 1)).DiskNumber).SerialNumber.TrimStart()).MediaType
+      if ($mediaType -eq 'SSD') {
+        $path = ${env:ProgramFiles(x86)} + '\Revision Tool\data\flutter_assets\additionals\DisableSF.bat'
+        Start-Process -FilePath $path -Wait -NoNewWindow
+      }
+  
+  - !cmd:
+    command: 'setx DOTNET_CLI_TELEMETRY_OPTOUT 1'
+    runas: currentUserElevated
+    
+  - !cmd:
+    command: 'setx POWERSHELL_TELEMETRY_OPTOUT 1'
+    runas: currentUserElevated
+
   - !writeStatus: {status: "Removing logs"}
   - !run:
     exeDir: true
@@ -14,6 +36,8 @@ actions:
   - !writeStatus: {status: "Finalizing process"}
   - !registryValue: {path: 'HKCU\System\GameConfigStore', value: 'GameDVR_FSEBehaviorMode', type: REG_DWORD, data: '0', weight: 70}
   - !registryValue: {path: 'HKCU\Software\Microsoft\Windows\CurrentVersion\BackgroundAccessApplications', value: 'GlobalUserDisabled', type: REG_DWORD, data: '1', weight: 60}
+
+  - !powerShell: {command: 'Get-ScheduledTask -TaskPath "\Microsoft\Office\*" | Disable-ScheduledTask'}
 
    # OneDrive workaround
   - !registryValue: {path: 'HKLM\Software\Policies\Microsoft\Windows\OneDrive', value: 'DisableFileSyncNGSC', operation: delete}
@@ -29,6 +53,7 @@ actions:
   - !run:
     exeDir: true
     exe: "STARTMENU.cmd"
+    option: "remove-pinned-items-startmenu"
     weight: 100
 
   - !run:
@@ -37,11 +62,24 @@ actions:
     option: "configure-lpv"
     weight: 150
 
-  - !run:
+  - !cmd:
     exeDir: true
-    exe: "WALLPAPER.cmd"
+    command: 'robocopy "Wallpapers" "%systemroot%\Web\Wallpaper\MeetRevision\v2" /E /PURGE /IM /IT /NP'
+    ignoreErrors: true
+
+  - !powerShell:
+    command: '.\WALLPAPER.ps1 -Mode Desktop -ImagePath $env:systemroot\Web\Wallpaper\MeetRevision\v2\desktop.jpg'
+    exeDir: true
+    runas: currentUserElevated
     option: "configure-wallpaper"
-    weight: 90
+    weight: 45
+
+  - !powerShell: 
+    command: '.\WALLPAPER.ps1 -Mode LockScreen -ImagePath $env:systemroot\Web\Wallpaper\MeetRevision\v2\lockscreen.jpg'
+    exeDir: true
+    runas: currentUserElevated
+    option: "configure-wallpaper"
+    weight: 45 
 
   - !writeStatus: {status: "Configuring features"}
   - !run:
@@ -52,7 +90,7 @@ actions:
 
     # Necessary to refresh start menu entries etc.
   - !appx: {operation: clearCache, name: '*Client.CBS*'}
-  - !appx: {operation: clearCache, name: '*StartMenuExperienceHost*'}
+  - !appx: {operation: clearCache, name: '*StartMenuExperienceHost*', option: "remove-pinned-items-startmenu"}
   - !appx: {operation: clearCache, name: '*Windows.Search*'}
   - !appx: {operation: clearCache, name: '*TCUI*'}
     # Workaround for KGL versions to match

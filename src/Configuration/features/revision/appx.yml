@@ -5,7 +5,7 @@ privilege: TrustedInstaller
 actions:
   
   - !writeStatus: {status: "Removing Appx Packages"}
-  - !appx: {name: '*Disney*', type: family, weight: 10}
+  # - !appx: {name: '*Disney*', type: family, weight: 10}
 
   - !appx: {name: '*microsoft.microsoftedge.stable*', type: family, ignoreErrors: true, weight: 10, option: "remove-edge"}
   - !appx: {name: '*Microsoft.MicrosoftEdge*', type: family, ignoreErrors: true, weight: 10, option: "remove-edge"}
@@ -45,7 +45,10 @@ actions:
   - !appx: {name: '*Microsoft.MicrosoftStickyNotes*', type: family, weight: 10}
   
   - !writeStatus: {status: "Removing Mail"}
-  - !appx: {name: '*microsoft.windowscommunicationsapps*', type: family, weight: 10}
+  - !powerShell:
+    command: 'Get-AppxPackage *windowscommunicationsapps* | Remove-AppxPackage'
+    runas: currentUserElevated
+  - !appx: {name: '*microsoft.windowscommunicationsapps*', type: family, weight: 10} # Seems to leave leftovers on the taskbar
 
   - !writeStatus: {status: "Removing People"}
   - !appx: {name: '*Microsoft.People*', type: family, weight: 10}
@@ -136,6 +139,9 @@ actions:
   - !writeStatus: {status: "Removing Teams"}
   - !taskKill: {name: "*teams*", ignoreErrors: true}
   - !appx: {name: '*MicrosoftTeams*', type: family, weight: 10}
+    # new Teams
+  - !powerShell: {command: 'Get-AppxPackage *MSTeams* | Remove-AppxPackage', runas: currentUserElevated}
+  - !appx: {name: '*MSTeams*', type: family, weight: 10}
 
   - !writeStatus: {status: "Removing Banners"}
     # MicrosoftWindows.Client.CBS_cw5n1h2txyewy!
@@ -156,6 +162,13 @@ actions:
   - !writeStatus: {status: "Removing Xbox Apps", option: "remove-appx-xbox"}
   - !appx: {name: '*Microsoft.Xbox*', type: family, weight: 10, option: "remove-appx-xbox"}
   - !appx: {name: '*Microsoft.GamingApp*', type: family, option: "remove-appx-xbox"}
+  # Xbox Console Companion is deprecated
+  - !appx: {name: '*Microsoft.XboxApp*', type: family} 
+
   
   - !writeStatus: {status: "Removing Your Phone", option: "remove-appx-yourphone"}
   - !appx: {name: '*Microsoft.YourPhone*', type: family, weight: 10, option: "remove-appx-yourphone"}
+  - !appx: {name: '*MicrosoftWindows.CrossDevice*', type: family, weight: 10, option: "remove-appx-yourphone"}
+
+  - !writeStatus: {status: "Removing Recall", option: "remove-appx-recall"}
+  - !appx: {name: '*MicrosoftWindows.Client.AIX*', type: family, weight: 10, option: "remove-appx-recall"}
